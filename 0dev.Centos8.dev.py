@@ -8,32 +8,32 @@
 # Enough Said Coding time. CENTOS 8.2
 # Warning : The Setup Might Be slow as it running configuration and stuff just live it with out canceling it
 
-##### Dont Edit Below This Line Unless you know what are you doing
-# import neccessary module
+##### Don't edit below this line unless you know what you are doing
+# import neccessary modules
 import subprocess    # recommended pipe from python 3.5
-import re            # calling regular expression module
+import re            # calling regular expressions module
 import sys           # calling sys.exit
-import datetime      # callin datetime so we can have log with time
+import datetime      # calling datetime so we can have logs with time
 
 
 
-# 1.0 Check Running This Script as Root . if not root quit
+# 1.0 Check if the script is running as root; if not, exit with an error message and abnormal exit code.
 with subprocess.Popen(['id'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as process:
     stdout,stderr = process.communicate()
-    result = stdout.decode('utf-8')      # conert decode object to string
+    result = stdout.decode('utf-8')      # convert decode object to string
     root = re.search("^uid=0" , result) 
     if root == None:
-        print ("You Need Root to run this scruipt")
+        print ("You need root privileges to run this script. Please run this script as the root user or via sudo.")
         sys.exit(1)
 
-# 1.1 OpenFile For Log of what we are doing
+# 1.1 Open the log file
 try:
     log_0dev = open ('/root/0dev.log' , 'a+')
 except:
-    print ("/root not exist , make /root directory ")
+    print ("/root directory does not exist or you don't have permission to write to it. Please create the directory if it does not exist, otherwise check permissions on /root.")
 
 
-# 1.2 Update The Machine And Restart 
+# 1.2 Update the machine and restart 
 with subprocess.Popen(['dnf' , '-y' , 'update'], stdout=subprocess.PIPE,stderr=subprocess.STDOUT) as dnf:
     for line in dnf.stdout:
         result_update = line.decode('utf-8')
@@ -44,7 +44,7 @@ with subprocess.Popen(['dnf' , '-y' , 'update'], stdout=subprocess.PIPE,stderr=s
 
 log_0dev.close()
 
-# 1.3 Declare Function and Break it into sub categorize for easy debugging and editing.
+# 1.3 Declare functions, breaking the script down into subcategories for easy debugging and editing.
 def main():                      # Declaring main prototype
     step1()
     step2()
@@ -56,7 +56,7 @@ def main():                      # Declaring main prototype
 def step1():
     with open("/root/0dev.log" , "a+", buffering = 1) as step1:            
         step1.write("\n# Begin Hardening ")
-        step1.write ("\n# 1 : Setup Hardening Initial Setup\n# 1.1 : Disabled Unused File System\n# 1.1.1.1 Ensure mounting of cramfs filesystems is disabled\n")
+        step1.write ("\n# 1 : Setup Hardening Initial Setup\n# 1.1 : Disable Unused File Systems\n# 1.1.1.1 Ensure mounting of cramfs filesystems is disabled\n")
         with subprocess.Popen(["modprobe" , "-v" , "-r" , "cramfs"], stdout=step1 ) as cramfs:
             stdout,stderr = cramfs.communicate()
     
@@ -92,8 +92,8 @@ def step1():
             stdout,stderr = tmp4.communicate()
         step1.write("Success , /tmp mode = Options=mode=1777,strictatime,noexec,nodev,nosuid\n")
 
-        ##### We Skipped Configuring /home /var/tmp /var /var/log /var/audit. Please Do it yourself
-        step1.write("# We Skipped Configuring /home /var /var/tmp /var/log /var/audit. Please Do it yourself\n")
+        ##### We skipped configuring /home /var/tmp /var /var/log /var/audit. Please do it yourself.
+        step1.write("# We skipped configuration of:\n/home\n/var/tmp\n/var\n/var/log\n/var/audit\n\nPlease do it yourself.\n")
 
         step1.write("# 1.1.21 Ensure sticky bit is set on all world-writable directories\n")
         cmd = "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \)  | xargs -I '{}' chmod a+t '{}'"
@@ -119,7 +119,7 @@ def step1():
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout=step1) as tmp8:
             stdout,stderr = tmp8.communicate()
-        step1.write ("# Ensure /etc/yum.repos.d/ all file enable gpgcheck set to 1\n")
+        step1.write ("# Ensure all files in /etc/yum.repos.d/ have gpgcheck set to 1\n")
         with subprocess.Popen(['/bin/sh', '-c', 'grep ^gpgcheck /etc/yum.repos.d/*'] , stdout=step1) as tmp_run:
             stdout,stderr = tmp_run.communicate()
             
@@ -149,7 +149,7 @@ def step1():
             tmp.close ()
         
 
-        step1.write ("# 1.4.1 Ensure AIDE is installed \n")
+        step1.write ("# 1.4.1 Ensure AIDE is installed\n")
         cmd = "dnf install -y aide"
         cmd = cmd.split()
         cmd2 = "aide --init"
@@ -158,10 +158,10 @@ def step1():
         cmd3 = cmd3.split()
         with subprocess.Popen(cmd, stdout=step1) as tmp10:
             stderr,stdout = tmp10.communicate()
-        step1.write ("# Establishing Now Init For Aide\n")
+        step1.write ("# Running: aide --init\n")
         with subprocess.Popen(cmd2, stdout=step1) as tmp11:
             stderr,stdout = tmp11.communicate()
-        step1.write ("# Moved The New Database of Ide\n")
+        step1.write ("# Renamed new aide db to: /var/lib/aide/aide.db.gz\n")
         with subprocess.Popen(cmd3, stdout=step1) as tmp12:
             stderr,stdout = tmp12.communicate()
         
@@ -179,7 +179,7 @@ def step1():
         with subprocess.Popen(cmd3, stdout=step1) as tmp15:
             stdout,stderr = tmp15.communicate()
 
-        step1.write ("# 1.5.1 Ensure permissions on bootloader config are configured\n")
+        step1.write ("# 1.5.1 Ensure permissions on bootloader config are properly configured\n")
         cmd = "chown root:root /boot/grub2/grub.cfg"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /boot/grub2/grub.cfg"
@@ -196,14 +196,14 @@ def step1():
             stdout,stderr = tmp18.communicate()
         with subprocess.Popen(cmd4, stdout = step1) as tmp19:
             stdout,stderr = tmp19.communicate()
-        step1.write (" Success Only root can read and modify grub config\n")
+        step1.write (" Grub config files are now readable only by root\n")
 
         step1.write("# 1.5.2 Ensure bootloader password is set\n")
         step1.write(" Set it with grub2-setpassword\n")
         step1.write(" And update grub2 with grub2-mkconfig -o /boot/grub2/grub.cfg\n")
 
-        step1.write("# 1.5.3 Ensure authentication required for single user mode\n")
-        step1.write(" Since is enable by default no configuration needed\n")
+        step1.write("# 1.5.3 Ensure authentication is required for single-user mode\n")
+        step1.write(" Since it is enabled by default, no configuration is needed\n")
 
         step1.write("# 1.6.1 Ensure core dumps are restricted\n")
         with open ("/etc/security/limits.conf" , "rt" , buffering = 1 ) as tmp:
@@ -234,7 +234,7 @@ def step1():
         with subprocess.Popen(["/bin/sh" , "-c" , "systemctl daemon-reload"], stdout = step1) as tmp02:
             stdout,stderr = tmp02.communicate()
         
-        step1.write("1.6.2 Ensure address space layout randomization (ASLR) is enabled \n")
+        step1.write("1.6.2 Ensure address space layout randomization (ASLR) is enabled\n")
         with open ("/etc/sysctl.conf" , "rt" , buffering = 1 ) as tmp:
             result_tmp = tmp.read()
             tmp.close()
@@ -252,7 +252,7 @@ def step1():
             stdout,stderr = tmp20.communicate()
         
         step1.write("# 1.7.1.2 Ensure SELinux is not disabled in bootloader configuration\n")
-        step1.write(" Nothing to do as is enabled by default\n")
+        step1.write(" Nothing to do as it is enabled by default\n")
 
         step1.write("# 1.7.1.3 Ensure SELinux policy is configured\n")
         cmd = "sestatus | grep Loaded"       
@@ -379,13 +379,13 @@ def step2():
         with subprocess.Popen(cmd , stdout = step2 ) as tmp9:
             stdout,stderr = tmp9.communicate()
 
-        step2.write("# 2.2.7 Ensure Samba is not enabled \n")
+        step2.write("# 2.2.7 Ensure Samba is not enabled\n")
         cmd = "systemctl --now disable smb"
         cmd = cmd.split()
         with subprocess.Popen(cmd , stdout = step2) as tmp10:
             stderr,stdout = tmp10.communicate()
         
-        step2.write("# 2.2.8 Ensure IMAP and POP3 server is not enabled\n")
+        step2.write("# 2.2.8 Ensure the IMAP and POP3 server is not enabled\n")
         cmd = "systemctl --now disable dovecot"
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout = step2) as tmp11:
@@ -427,6 +427,7 @@ def step2():
         with subprocess.Popen(cmd, stdout = step2) as tmp17:
             stdout,stderr = tmp17.communicate()
         
+        # This appears to be a duplicate codeblock, remove?
         step2.write("# 2.2.14 Ensure LDAP server is not enabled\n")
         cmd = "systemctl --now disable slapd"
         cmd = cmd.split()
@@ -451,25 +452,25 @@ def step2():
         with subprocess.Popen(cmd, stdout = step2) as tmp21:
             stdout,stderr = tmp21.communicate()
         
-        step2.write("# 2.3.1 Ensure NIS Client is not installed \n") 
+        step2.write("# 2.3.1 Ensure NIS Client is not installed\n") 
         cmd = "dnf -y remove ypbind"
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout = step2) as tmp22:
             stdout,stderr = tmp22.communicate()
         
-        step2.write("# 2.3.2 Ensure telnet client is not installed \n") 
+        step2.write("# 2.3.2 Ensure telnet client is not installed\n") 
         cmd = "dnf -y remove telnet"
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout = step2) as tmp23:
             stdout,stderr = tmp23.communicate()
         
-        step2.write("# 2.3.3 Ensure LDAP client is not installed \n") 
+        step2.write("# 2.3.3 Ensure LDAP client is not installed\n") 
         cmd = "dnf -y remove openldap-clients"
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout = step2) as tmp24:
             stdout,stderr = tmp24.communicate()
         
-        ### Last Fix Broken Package
+        ### Fix any broken packages
         cmd = "dnf -y update"
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout = step2) as tmp25:
@@ -712,13 +713,13 @@ def step4():
                 tmp.write(result_tmp)
                 tmp.close()
         
-        step4.write("# 4.1.3 Ensure changes to system administration scope (sudoers) is collected \n")
+        step4.write("# 4.1.3 Ensure changes to system administration scope (sudoers) is collected\n")
         with open("/etc/audit/rules.d/audit.rules" , "rt" , buffering = 1) as tmp:
             result_tmp = tmp.read()
             tmp.close()
         with open("/etc/audit/rules.d/audit.rules" , "wt" , buffering = 1) as tmp:
             tmp.write (result_tmp)
-            tmp.write ("## Ensure Sudoers is Collected\n")
+            tmp.write ("## Ensure changes to sudoers are collected\n")
             tmp.write ("-w /etc/sudoers -p wa -k scope\n")
             tmp.write ("-w /etc/sudoers.d/ -p wa -k scope\n")
             tmp.close()
@@ -729,7 +730,7 @@ def step4():
             tmp.close()
         with open("/etc/audit/rules.d/audit.rules" , "wt" , buffering = 1) as tmp:
             tmp.write (result_tmp)
-            tmp.write ("\n## Ensure Login and Logout Events Are Collected\n")
+            tmp.write ("\n## Ensure login and logout events are collected\n")
             tmp.write ("-w /var/log/faillog -p wa -k logins\n")
             tmp.write ("-w /var/log/lastlog -p wa -k logins\n")
             tmp.close()
@@ -740,7 +741,7 @@ def step4():
             tmp.close()
         with open("/etc/audit/rules.d/audit.rules" , "wt" , buffering = 1) as tmp:
             tmp.write (result_tmp)
-            tmp.write ("\n## Ensure session initiation Collected\n")
+            tmp.write ("\n## Ensure session initiation information is collected\n")
             tmp.write ("-w /var/run/utmp -p wa -k session\n")
             tmp.write ("-w /var/log/wtmp -p wa -k logins\n")
             tmp.write ("-w /var/log/btmp -p wa -k logins\n")
@@ -752,7 +753,7 @@ def step4():
             tmp.close()
         with open("/etc/audit/rules.d/audit.rules" , "wt" , buffering = 1) as tmp:
             tmp.write (result_tmp)
-            tmp.write ("\n## Ensure session initiation Collected\n")
+            tmp.write ("\n## Ensure events that modify date and time information are collected\n")
             tmp.write ("-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change\n")
             tmp.write ("-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k timechange\n")
             tmp.write ("-a always,exit -F arch=b64 -S clock_settime -k time-change\n")
@@ -786,7 +787,7 @@ def step4():
             tmp.write ("-w /etc/sysconfig/network -p wa -k system-locale\n")
             tmp.close()
 
-        step4.write("# 4.1.9 Ensure discretionary access control permission modification events are collected \n")
+        step4.write("# 4.1.9 Ensure discretionary access control permission modification events are collected\n")
         with open("/etc/audit/rules.d/audit.rules" , "rt" , buffering = 1) as tmp:
             result_tmp = tmp.read()
             tmp.close()
@@ -801,7 +802,7 @@ def step4():
             tmp.write ("-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod\n")
             tmp.close()
 
-        step4.write("# 4.1.10 Ensure unsuccessful unauthorized file access attempts are collected \n")
+        step4.write("# 4.1.10 Ensure unsuccessful unauthorized file access attempts are collected\n")
         with open("/etc/audit/rules.d/audit.rules" , "rt" , buffering = 1) as tmp:
             result_tmp = tmp.read()
             tmp.close()
@@ -853,7 +854,7 @@ def step4():
             tmp.write ("-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts\n")
             tmp.close()
         
-        step4.write("# 4.1.13 Ensure use of privileged commands is collected \n")
+        step4.write("# 4.1.13 Ensure use of privileged commands is collected\n")
         with open("/etc/audit/rules.d/audit.rules" , "rt" , buffering = 1) as tmp:
             result_tmp = tmp.read()
             tmp.close()
@@ -911,19 +912,19 @@ def step4():
         with subprocess.Popen(cmd, stdout = step4) as tmp04:
             stderr,stdout = tmp04.communicate()
         
-        step4.write("# 4.2.1.2 Ensure rsyslog Service is enabled\n")
+        step4.write("# 4.2.1.2 Ensure rsyslog service is enabled\n")
         cmd = "systemctl --now enable rsyslog"
         cmd = cmd.split()
         with subprocess.Popen(cmd, stdout = step4) as tmp05:
             stderr,stdout = tmp05.communicate()
         
-        step4.write("# 4.2.1.3 Ensure rsyslog default file permissions configured\n")
+        step4.write("# 4.2.1.3 Ensure rsyslog default file permissions are configured properly\n")
         with open("/etc/rsyslog.conf" , "rt" , buffering = 1) as tmp:
             result_tmp = tmp.read()
             tmp.close()
         with open("/etc/rsyslog.conf" , "wt" , buffering = 1) as tmp:
             tmp.write (result_tmp)
-            tmp.write ("\n## Ensure rsyslog default file permissions configured\n")
+            tmp.write ("\n## Ensure rsyslog default file permissions are configured properly\n")
             tmp.write ("$FileCreateMode 0640\n")
             tmp.close()
         cmd = "systemctl restart rsyslog"
@@ -952,7 +953,7 @@ def step4():
             tmp.write ("Compress=yes\n")
             tmp.close()
         
-        step4.write("# 4.2.2.3 Ensure journald is configured to write logfiles to persistent disk \n")
+        step4.write("# 4.2.2.3 Ensure journald is configured to write logfiles to persistent disk\n")
         with open ("/etc/systemd/journald.conf" , "rt" , buffering = 1) as tmp:
             result_tmp = tmp.read()
             tmp.close()
@@ -971,7 +972,7 @@ def step5():
         with subprocess.Popen (cmd , stdout = step5) as tmp01:
             stdout,stderr = tmp01.communicate()
 
-        step5.write("# 5.1.2 Ensure permissions on /etc/crontab are configured\n")
+        step5.write("# 5.1.2 Ensure permissions on /etc/crontab are configured properly\n")
         cmd = "chown root:root /etc/crontab"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/crontab"
@@ -981,7 +982,7 @@ def step5():
         with subprocess.Popen (cmd2 , stdout = step5) as tmp03:
             stdout,stderr = tmp03.communicate()
         
-        step5.write("# 5.1.3 Ensure permissions on /etc/cron.hourly are configured\n")
+        step5.write("# 5.1.3 Ensure permissions on /etc/cron.hourly are configured properly\n")
         cmd = "chown root:root /etc/cron.hourly"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/cron.hourly"
@@ -991,7 +992,7 @@ def step5():
         with subprocess.Popen (cmd2 , stdout = step5) as tmp05:
             stdout,stderr = tmp05.communicate()
 
-        step5.write("# 5.1.4 Ensure permissions on /etc/cron.daily are configured\n")
+        step5.write("# 5.1.4 Ensure permissions on /etc/cron.daily are configured properly\n")
         cmd = "chown root:root /etc/cron.daily"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/cron.daily"
@@ -1001,7 +1002,7 @@ def step5():
         with subprocess.Popen (cmd2 , stdout = step5) as tmp07:
             stdout,stderr = tmp07.communicate()
         
-        step5.write("# 5.1.5 Ensure permissions on /etc/cron.weekly are configured\n")
+        step5.write("# 5.1.5 Ensure permissions on /etc/cron.weekly are configured properly\n")
         cmd = "chown root:root /etc/cron.weekly"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/cron.weekly"
@@ -1011,7 +1012,7 @@ def step5():
         with subprocess.Popen (cmd2 , stdout = step5) as tmp09:
             stdout,stderr = tmp09.communicate()
 
-        step5.write("# 5.1.6 Ensure permissions on /etc/cron.monthly are configured\n")
+        step5.write("# 5.1.6 Ensure permissions on /etc/cron.monthly are configured properly\n")
         cmd = "chown root:root /etc/cron.monthly"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/cron.monthly"
@@ -1021,7 +1022,7 @@ def step5():
         with subprocess.Popen (cmd2 , stdout = step5) as tmp11:
             stdout,stderr = tmp11.communicate()
         
-        step5.write("# 5.1.7 Ensure permissions on /etc/cron.d are configured\n")
+        step5.write("# 5.1.7 Ensure permissions on /etc/cron.d are configured properly\n")
         cmd = "chown root:root /etc/cron.d"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/cron.d"
@@ -1065,7 +1066,7 @@ def step5():
         with subprocess.Popen (cmd8 , stdout = step5) as tmp21:
             stdout,stderr = tmp21.communicate()
         
-        step5.write("# 5.2.1 Ensure permissions on /etc/ssh/sshd_config are configured\n")
+        step5.write("# 5.2.1 Ensure permissions on /etc/ssh/sshd_config are configured properly\n")
         cmd = "chown root:root /etc/ssh/sshd_config"
         cmd = cmd.split()
         cmd2 = "chmod og-rwx /etc/ssh/sshd_config"
@@ -1076,21 +1077,21 @@ def step5():
             stdout,stderr = tmp23.communicate()
         
         step5.write("# 5.2.2 Ensure SSH access is limited\n")
-        step5.write("### Check Document On How to Access it\n")
+        step5.write("### Check ssh and ssh_config man pages for SSH configuration\n")
 
-        step5.write("# 5.2.3 Ensure permissions on SSH private host key files are configured\n")
+        step5.write("# 5.2.3 Ensure permissions on SSH private host key files are configured properly\n")
         with subprocess.Popen (['/bin/sh' , '-c' , "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chown root:root {} \;"] , stdout = step5) as tmp24:
             stdout,stderr = tmp24.communicate()
         with subprocess.Popen (['/bin/sh' , '-c' , "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec chmod 0600 {} \;"] , stdout = step5) as tmp25:
             stdout,stderr = tmp25.communicate()
         
-        step5.write("# 5.2.4 Ensure permissions on SSH public host key files are configured \n")
+        step5.write("# 5.2.4 Ensure permissions on SSH public host key files are configured properly\n")
         with subprocess.Popen (['/bin/sh' , '-c' , "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec chmod 0644 {} \;"] , stdout = step5) as tmp26:
             stdout,stderr = tmp26.communicate()
         with subprocess.Popen (['/bin/sh' , '-c' , "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec chown root:root {} \;"] , stdout = step5) as tmp27:
             stdout,stderr = tmp27.communicate()
         
-        step5.write("# 5.2.5 Ensure SSH LogLevel to verbose\n")
+        step5.write("# 5.2.5 Ensure SSH LogLevel is set to verbose\n")
         with open ("/etc/ssh/sshd_config" , "rt" , buffering = 1 ) as sshd:
             result_tmp = sshd.read()
             sshd.close()      
@@ -1226,7 +1227,7 @@ def step5():
             sshd.write(result_tmp)
             sshd.close()
         
-        step5.write("# 5.2.20 Ensure system-wide crypto policy is not over-ridden\n")
+        step5.write("# 5.2.20 Ensure system-wide crypto policy is not overridden\n")
         with open ("/etc/sysconfig/sshd" , "rt" , buffering = 1 ) as sshd:
             result_tmp = sshd.read()
             sshd.close()      
@@ -1322,7 +1323,7 @@ def step5():
         with subprocess.Popen(cmd, stdout = step5) as apply:
             stdout,stderr = apply.communicate()
         
-        step5.write("# 5.5.1.1 Ensure password expiration is 365 days or less \n")
+        step5.write("# 5.5.1.1 Ensure password expiration is 365 days or less\n")
         with open ("/etc/login.defs" , "rt" , buffering = 1 ) as pwquality:
             result_tmp = pwquality.read()
             pwquality = pwquality.close()
@@ -1423,7 +1424,7 @@ def step5():
         
 def step6():
     with open("/root/0dev.log" , "a+" , buffering = 1) as step6:
-        step6.write("# 6.1.2 Ensure permissions on /etc/passwd are configured\n")
+        step6.write("# 6.1.2 Ensure permissions on /etc/passwd are configured properly\n")
         cmd = "chown root:root /etc/passwd"
         cmd2 = "chmod 644 /etc/passwd"
         cmd = cmd.split()
@@ -1433,7 +1434,7 @@ def step6():
         with subprocess.Popen(cmd2 , stdout = step6 ) as tmp02:
             stdout,stderr = tmp02.communicate()
 
-        step6.write("# 6.1.3 Ensure permissions on /etc/shadow are configured\n")
+        step6.write("# 6.1.3 Ensure permissions on /etc/shadow are configured properly\n")
         cmd = "chown root:root /etc/shadow"
         cmd2 = "chmod o-rwx,g-wx /etc/shadow"
         cmd = cmd.split()
@@ -1445,7 +1446,7 @@ def step6():
             stderr,stdout = tmp04.communicate()
        
         
-        step6.write("# 6.1.4 Ensure permissions on /etc/group are configured\n")
+        step6.write("# 6.1.4 Ensure permissions on /etc/group are configured properly\n")
         cmd = "chown root:root /etc/group"
         cmd2 = "chmod 644 /etc/group"
         cmd = cmd.split()
@@ -1455,7 +1456,7 @@ def step6():
         with subprocess.Popen (cmd2 , stdout = step6) as tmp07:
             stderr,stdout = tmp07.communicate()
         
-        step6.write("# 6.1.5 Ensure permissions on /etc/gshadow are configured\n")
+        step6.write("# 6.1.5 Ensure permissions on /etc/gshadow are configured properly\n")
         cmd = "chown root:root /etc/gshadow"
         cmd2 = "chmod o-rwx,g-wx /etc/shadow"
         cmd = cmd.split()
@@ -1465,7 +1466,7 @@ def step6():
         with subprocess.Popen (cmd2 , stdout = step6) as tmp09:
             stderr,stdout = tmp09.communicate()
         
-        step6.write("# 6.1.6 Ensure permissions on /etc/passwd- are configured\n")
+        step6.write("# 6.1.6 Ensure permissions on /etc/passwd- are configured properly\n")
         cmd = "chown root:root /etc/passwd-"
         cmd2 = "chmod u-x,go-rwx /etc/passwd-"
         cmd = cmd.split()
@@ -1475,7 +1476,7 @@ def step6():
         with subprocess.Popen (cmd2 , stdout = step6) as tmp11:
             stderr,stdout = tmp11.communicate()
         
-        step6.write("# 6.1.7 Ensure permissions on /etc/shadow- are configured\n")
+        step6.write("# 6.1.7 Ensure permissions on /etc/shadow- are configured properly\n")
         cmd = " chown root:root /etc/shadow-"
         cmd2 = "chmod u-x,go-rwx /etc/shadow-"
         cmd = cmd.split()
@@ -1485,7 +1486,7 @@ def step6():
         with subprocess.Popen (cmd2 , stdout = step6) as tmp13:
             stderr,stdout = tmp13.communicate()
         
-        step6.write("# 6.1.8 Ensure permissions on /etc/group- are configured\n")
+        step6.write("# 6.1.8 Ensure permissions on /etc/group- are configured properly\n")
         cmd = "chown root:root /etc/group-"
         cmd2 = "chmod u-x,go-wx /etc/group-"
         cmd = cmd.split()
@@ -1495,7 +1496,7 @@ def step6():
         with subprocess.Popen (cmd2 , stdout = step6) as tmp15:
             stderr,stdout = tmp15.communicate()
         
-        step6.write("# 6.1.9 Ensure permissions on /etc/gshadow- are configured\n")
+        step6.write("# 6.1.9 Ensure permissions on /etc/gshadow- are configured properly\n")
         cmd = "chown root:root /etc/gshadow-"
         cmd2 = "chmod o-rwx,g-rw /etc/gshadow-"
         cmd = cmd.split()
@@ -1512,7 +1513,7 @@ def step6():
         
 
 
-# LAST CALL FUNCTION AND START THE SCRIPT , ENJOY
+# Call the main() function to start script processing. ENJOY
 main()
 
 
