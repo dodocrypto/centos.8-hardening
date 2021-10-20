@@ -20,4 +20,4 @@ passwd root
 passwd user
 
 
-contact : https://discord.me/0dev
+contact : https://discord.me/0dev or irc.libera.chat channel #0dev
