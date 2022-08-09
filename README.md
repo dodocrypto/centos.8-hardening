@@ -19,5 +19,6 @@ passwd root
 
 passwd user
 
+contact : https://discord.me/worldhacker skraito .
 
-contact : https://discord.me/0dev or irc.libera.chat channel #0dev
+CURRENTLY WORKING ON NEW VERSION , PLEASE CHECK BACK IN A FEW WEEKS OR MONTH . REDHAT 8.6 OR REDHAT 9.0 ... .
