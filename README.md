@@ -21,6 +21,7 @@ passwd user
 
 
 CONTACT : https://discord.me/worldhacker ( skraito ) ... .
+
         : or irc.libera.chat channel #0dev ( skraito ) ... .
 
 CURRENTLY WORKING ON VERSION 2.0 FOR REDHAT 8.6 AND 9.0++ , CHECK BACK IN A FEW WEEKS . 
